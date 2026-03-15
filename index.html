@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Freeze Photography — Vignesh S</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:   #0a0a0a;
+      --off-black: #111111;
+      --mid:     #1e1e1e;
+      --border:  rgba(255,255,255,0.08);
+      --white:   #f5f0eb;
+      --cream:   #e8e0d5;
+      --gold:    #c9a84c;
+      --gold-dim: rgba(201,168,76,0.18);
+      --serif:   'Cormorant Garamond', Georgia, serif;
+      --sans:    'Jost', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--sans);
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CUSTOM CURSOR ─────────────────────────────── */
+    .cursor-dot {
+      width: 6px; height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      transition: transform 0.1s ease;
+    }
+    .cursor-ring {
+      width: 32px; height: 32px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9998;
+      transition: transform 0.18s ease, width 0.2s, height 0.2s, opacity 0.2s;
+      opacity: 0.6;
+    }
+    body.hovering .cursor-ring { width: 52px; height: 52px; opacity: 1; }
+
+    /* ─── NAV ────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.6rem 4rem;
+      backdrop-filter: blur(12px);
+      background: rgba(10,10,10,0.6);
+      border-bottom: 1px solid var(--border);
+      transition: padding 0.3s ease;
+    }
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 1.3rem;
+      letter-spacing: 0.15em;
+      color: var(--white);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 2.4rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cream);
+      text-decoration: none;
+      opacity: 0.7;
+      transition: opacity 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; color: var(--gold); }
+
+    /* ─── HERO ───────────────────────────────────────── */
+    #hero {
+      position: relative;
+      height: 100vh; min-height: 640px;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(to bottom, rgba(10,10,10,0.2) 0%, rgba(10,10,10,0.75) 70%, var(--black) 100%),
+        url('https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1800&q=80') center/cover no-repeat;
+      transform: scale(1.04);
+      animation: heroZoom 14s ease-out forwards;
+    }
+    @keyframes heroZoom { to { transform: scale(1); } }
+
+    .hero-content {
+      position: relative;
+      padding: 0 4rem 6rem;
+      max-width: 780px;
+      animation: heroFadeUp 1.4s 0.3s ease both;
+    }
+    @keyframes heroFadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-eyebrow {
+      font-size: 0.68rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    .hero-title {
+      font-family: var(--serif);
+      font-size: clamp(3.2rem, 7vw, 6.4rem);
+      font-weight: 300;
+      line-height: 1.05;
+      color: var(--white);
+    }
+    .hero-title em { font-style: italic; color: var(--cream); }
+    .hero-sub {
+      margin-top: 1.4rem;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      color: rgba(245,240,235,0.6);
+      max-width: 420px;
+      line-height: 1.8;
+    }
+    .hero-cta {
+      display: inline-block;
+      margin-top: 2.6rem;
+      padding: 0.85rem 2.4rem;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.25s, color 0.25s;
+    }
+    .hero-cta:hover { background: var(--gold); color: var(--black); }
+
+    .scroll-indicator {
+      position: absolute; bottom: 2.4rem; right: 4rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      animation: heroFadeUp 1.4s 0.9s ease both;
+    }
+    .scroll-indicator span {
+      font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.4;
+    }
+    .scroll-line {
+      width: 1px; height: 50px; background: var(--gold); opacity: 0.5;
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollPulse {
+      0%,100% { transform: scaleY(1); opacity: 0.5; }
+      50%      { transform: scaleY(0.4); opacity: 0.2; }
+    }
+
+    /* ─── SECTION BASE ───────────────────────────────── */
+    section { padding: 7rem 4rem; }
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.15;
+    }
+    .section-title em { font-style: italic; }
+    .divider {
+      width: 48px; height: 1px;
+      background: var(--gold);
+      margin: 1.8rem 0;
+      opacity: 0.6;
+    }
+
+    /* ─── ABOUT ──────────────────────────────────────── */
+    #about {
+      background: var(--off-black);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: center;
+    }
+    .about-image-wrap {
+      position: relative;
+    }
+    .about-image-wrap::before {
+      content: '';
+      position: absolute;
+      top: -18px; left: -18px;
+      right: 18px; bottom: 18px;
+      border: 1px solid var(--gold);
+      opacity: 0.25;
+      pointer-events: none;
+    }
+    .about-image-wrap img {
+      width: 100%; aspect-ratio: 4/5;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(20%);
+      transition: filter 0.4s;
+    }
+    .about-image-wrap:hover img { filter: grayscale(0%); }
+
+    .about-text p {
+      font-size: 1rem;
+      line-height: 1.9;
+      color: rgba(245,240,235,0.72);
+      margin-bottom: 1.2rem;
+    }
+    .about-stats {
+      display: flex; gap: 3rem;
+      margin-top: 2.4rem;
+      padding-top: 2.4rem;
+      border-top: 1px solid var(--border);
+    }
+    .stat-num {
+      font-family: var(--serif);
+      font-size: 2.6rem;
+      font-weight: 300;
+      color: var(--gold);
+      display: block;
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(245,240,235,0.4);
+      margin-top: 0.4rem;
+      display: block;
+    }
+    .about-insta {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-decoration: none;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .about-insta:hover { opacity: 1; }
+    .about-insta svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+    /* ─── GALLERY ────────────────────────────────────── */
+    #gallery { background: var(--black); }
+    .gallery-header {
+      display: flex; align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+    }
+    .gallery-filter {
+      display: flex; gap: 1.2rem;
+    }
+    .filter-btn {
+      background: none; border: none; cursor: none;
+      font-family: var(--sans);
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(245,240,235,0.4);
+      padding: 0.3rem 0;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .filter-btn.active,
+    .filter-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-auto-rows: 220px;
+      gap: 10px;
+    }
+    .tile {
+      overflow: hidden;
+      position: relative;
+      cursor: none;
+    }
+    .tile:nth-child(1)  { grid-column: span 5; grid-row: span 2; }
+    .tile:nth-child(2)  { grid-column: span 4; grid-row: span 1; }
+    .tile:nth-child(3)  { grid-column: span 3; grid-row: span 2; }
+    .tile:nth-child(4)  { grid-column: span 4; grid-row: span 1; }
+    .tile:nth-child(5)  { grid-column: span 4; grid-row: span 2; }
+    .tile:nth-child(6)  { grid-column: span 4; grid-row: span 1; }
+    .tile:nth-child(7)  { grid-column: span 4; grid-row: span 1; }
+    .tile:nth-child(8)  { grid-column: span 5; grid-row: span 2; }
+    .tile:nth-child(9)  { grid-column: span 3; grid-row: span 1; }
+    .tile:nth-child(10) { grid-column: span 4; grid-row: span 1; }
+    .tile:nth-child(11) { grid-column: span 3; grid-row: span 1; }
+
+    .tile img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.4s;
+      filter: brightness(0.88);
+    }
+    .tile:hover img { transform: scale(1.07); filter: brightness(1); }
+
+    .tile-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%);
+      opacity: 0; transition: opacity 0.35s;
+      display: flex; align-items: flex-end;
+      padding: 1.2rem;
+    }
+    .tile:hover .tile-overlay { opacity: 1; }
+    .tile-caption {
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--cream);
+      letter-spacing: 0.04em;
+    }
+
+    .gallery-note {
+      margin-top: 2rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: rgba(245,240,235,0.3);
+      text-align: center;
+    }
+    .gallery-note a { color: var(--gold); text-decoration: none; opacity: 0.8; }
+    .gallery-note a:hover { opacity: 1; }
+
+    /* ─── CONTACT ────────────────────────────────────── */
+    #contact {
+      background: var(--mid);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: start;
+    }
+    .contact-info p {
+      font-size: 0.95rem;
+      line-height: 1.9;
+      color: rgba(245,240,235,0.6);
+      margin-bottom: 2.4rem;
+    }
+    .contact-detail {
+      display: flex; flex-direction: column; gap: 1rem;
+      margin-top: 1.6rem;
+    }
+    .contact-item {
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .contact-icon {
+      width: 38px; height: 38px;
+      border: 1px solid var(--gold-dim);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .contact-icon svg { width: 15px; height: 15px; fill: none; stroke: var(--gold); stroke-width: 1.5; }
+    .contact-item-text { font-size: 0.82rem; color: rgba(245,240,235,0.65); letter-spacing: 0.04em; }
+    .contact-item-text a { color: inherit; text-decoration: none; }
+    .contact-item-text a:hover { color: var(--gold); }
+
+    /* Form */
+    .contact-form { display: flex; flex-direction: column; gap: 1.2rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label {
+      font-size: 0.62rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(245,240,235,0.4);
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--white);
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 300;
+      padding: 0.85rem 1rem;
+      outline: none;
+      transition: border-color 0.25s;
+      resize: none;
+      appearance: none;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { border-color: var(--gold); }
+    .form-group textarea { min-height: 130px; }
+    .form-group select option { background: var(--mid); }
+
+    .submit-btn {
+      align-self: flex-start;
+      margin-top: 0.4rem;
+      padding: 0.9rem 2.6rem;
+      background: var(--gold);
+      color: var(--black);
+      border: none;
+      font-family: var(--sans);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      cursor: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .submit-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ─── FOOTER ─────────────────────────────────────── */
+    footer {
+      background: var(--black);
+      border-top: 1px solid var(--border);
+      padding: 2.4rem 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+    }
+    .footer-logo span { color: var(--gold); }
+    .footer-copy {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      color: rgba(245,240,235,0.3);
+    }
+    .footer-social { display: flex; gap: 1.2rem; }
+    .footer-social a {
+      width: 34px; height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(245,240,235,0.5);
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .footer-social a:hover { border-color: var(--gold); color: var(--gold); }
+    .footer-social svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+    /* ─── REVEAL ANIMATION ───────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── RESPONSIVE ─────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 1.2rem 2rem; }
+      .nav-links { display: none; }
+      section { padding: 5rem 2rem; }
+      #about, #contact { grid-template-columns: 1fr; gap: 3rem; }
+      .hero-content { padding: 0 2rem 5rem; }
+      .scroll-indicator { right: 2rem; }
+      .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 180px;
+      }
+      .tile { grid-column: span 1 !important; grid-row: span 1 !important; }
+      .gallery-header { flex-direction: column; align-items: flex-start; gap: 1.4rem; }
+      footer { padding: 2rem; flex-direction: column; text-align: center; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Cursor -->
+  <div class="cursor-dot"  id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#hero" class="nav-logo">Time<span>Freeze</span></a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="https://instagram.com/timefreezephotography" target="_blank">Instagram</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">#timefreezephotography</p>
+      <h1 class="hero-title">
+        Every frame,<br><em>a moment</em><br>frozen forever.
+      </h1>
+      <p class="hero-sub">Travel &amp; passion photography by Vignesh S — capturing the world one shutter click at a time.</p>
+      <a href="#gallery" class="hero-cta">View Gallery</a>
+    </div>
+    <div class="scroll-indicator">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="about-image-wrap reveal">
+      <img
+        src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800&q=80"
+        alt="Vignesh S — photographer"
+      />
+    </div>
+    <div class="about-text reveal">
+      <p class="section-label">About Me</p>
+      <h2 class="section-title">Passion for <em>light,</em><br>travel &amp; stories.</h2>
+      <div class="divider"></div>
+      <p>
+        I'm Vignesh S, a self-driven passion photographer and travel enthusiast based in Tamil Nadu, India.
+        Photography, for me, is the art of pausing time — finding beauty in fleeting light, distant landscapes,
+        and unguarded human moments.
+      </p>
+      <p>
+        Armed with a camera and an insatiable curiosity, I roam through places near and far, building a visual
+        diary that tells stories no words can fully capture. Every photograph is a question asked to the world —
+        and the light answers.
+      </p>
+      <div class="about-stats">
+        <div>
+          <span class="stat-num">26</span>
+          <span class="stat-lbl">Posts</span>
+        </div>
+        <div>
+          <span class="stat-num">∞</span>
+          <span class="stat-lbl">Moments Frozen</span>
+        </div>
+        <div>
+          <span class="stat-num">1</span>
+          <span class="stat-lbl">Lens, Many Worlds</span>
+        </div>
+      </div>
+      <a href="https://instagram.com/timefreezephotography" target="_blank" class="about-insta">
+        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        @timefreezephotography
+      </a>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section id="gallery">
+    <div class="gallery-header reveal">
+      <div>
+        <p class="section-label">Portfolio</p>
+        <h2 class="section-title">Selected <em>Works</em></h2>
+      </div>
+      <div class="gallery-filter">
+        <button class="filter-btn active" onclick="filterGallery('all', this)">All</button>
+        <button class="filter-btn" onclick="filterGallery('travel', this)">Travel</button>
+        <button class="filter-btn" onclick="filterGallery('nature', this)">Nature</button>
+        <button class="filter-btn" onclick="filterGallery('street', this)">Street</button>
+      </div>
+    </div>
+
+    <!--
+      ╔══════════════════════════════════════════════════════════════════╗
+      ║  REPLACE the src="" values below with YOUR own image URLs.      ║
+      ║  These are Unsplash placeholders in travel / nature style        ║
+      ║  matching your #travelholic + #timefreezephotography brand.      ║
+      ╚══════════════════════════════════════════════════════════════════╝
+    -->
+    <div class="gallery-grid reveal">
+      <div class="tile" data-cat="travel">
+        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&q=80" alt="Mountain landscape" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Above the Clouds</span></div>
+      </div>
+      <div class="tile" data-cat="nature">
+        <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80" alt="Golden hour nature" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Golden Hour</span></div>
+      </div>
+      <div class="tile" data-cat="travel">
+        <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=700&q=80" alt="Travel destination" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Wanderlust</span></div>
+      </div>
+      <div class="tile" data-cat="street">
+        <img src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=800&q=80" alt="Street photography" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">City Pulse</span></div>
+      </div>
+      <div class="tile" data-cat="nature">
+        <img src="https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=800&q=80" alt="Misty forest" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Into the Mist</span></div>
+      </div>
+      <div class="tile" data-cat="travel">
+        <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=800&q=80" alt="Coastal view" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Coastal Calm</span></div>
+      </div>
+      <div class="tile" data-cat="street">
+        <img src="https://images.unsplash.com/photo-1555212697-194d092e3b8f?w=800&q=80" alt="Night lights" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Night Frequency</span></div>
+      </div>
+      <div class="tile" data-cat="nature">
+        <img src="https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=900&q=80" alt="Sunrise" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">First Light</span></div>
+      </div>
+      <div class="tile" data-cat="travel">
+        <img src="https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=700&q=80" alt="Rocky peaks" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Peak Silence</span></div>
+      </div>
+      <div class="tile" data-cat="nature">
+        <img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&q=80" alt="Open field" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Breathing Space</span></div>
+      </div>
+      <div class="tile" data-cat="street">
+        <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=700&q=80" alt="Urban landscape" loading="lazy"/>
+        <div class="tile-overlay"><span class="tile-caption">Urban Grid</span></div>
+      </div>
+    </div>
+
+    <p class="gallery-note reveal">
+      More on Instagram →
+      <a href="https://instagram.com/timefreezephotography" target="_blank">@timefreezephotography</a>
+    </p>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="contact-info reveal">
+      <p class="section-label">Get In Touch</p>
+      <h2 class="section-title">Let's create<br><em>something</em><br>together.</h2>
+      <div class="divider"></div>
+      <p>
+        Have a project in mind, want to collaborate, or just want to talk photography?
+        I'd love to hear from you. Reach out and let's make something memorable.
+      </p>
+      <div class="contact-detail">
+        <div class="contact-item">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <span class="contact-item-text">
+            <a href="mailto:hello@timefreezephotography.in">hello@timefreezephotography.in</a>
+          </span>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="var(--gold)" stroke="none"/></svg>
+          </div>
+          <span class="contact-item-text">
+            <a href="https://instagram.com/timefreezephotography" target="_blank">@timefreezephotography</a>
+          </span>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <span class="contact-item-text">Tamil Nadu, India</span>
+        </div>
+      </div>
+    </div>
+
+    <form class="contact-form reveal" onsubmit="handleSubmit(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fname">First Name</label>
+          <input type="text" id="fname" placeholder="Arjun" required />
+        </div>
+        <div class="form-group">
+          <label for="lname">Last Name</label>
+          <input type="text" id="lname" placeholder="Sharma" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" required />
+      </div>
+      <div class="form-group">
+        <label for="subject">Subject</label>
+        <select id="subject">
+          <option value="">Select a topic</option>
+          <option>Collaboration</option>
+          <option>Print Purchase</option>
+          <option>Assignment / Commission</option>
+          <option>Just Saying Hi</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" placeholder="Tell me about your project or idea..." required></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Send Message</button>
+      <p id="form-success" style="display:none;color:var(--gold);font-size:0.8rem;letter-spacing:0.1em;margin-top:0.4rem;">
+        ✓ Message sent! I'll be in touch soon.
+      </p>
+    </form>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Time<span>Freeze</span> Photography</div>
+    <p class="footer-copy">© 2025 Vignesh S — All rights reserved</p>
+    <div class="footer-social">
+      <a href="https://instagram.com/timefreezephotography" target="_blank" aria-label="Instagram">
+        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    /* ── Custom cursor ── */
+    const dot  = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    document.addEventListener('mousemove', e => {
+      const x = e.clientX, y = e.clientY;
+      dot.style.transform  = `translate(${x - 3}px, ${y - 3}px)`;
+      ring.style.transform = `translate(${x - 16}px, ${y - 16}px)`;
+    });
+    document.querySelectorAll('a, button, .tile').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+    });
+
+    /* ── Intersection Observer for reveals ── */
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    /* ── Gallery filter ── */
+    function filterGallery(cat, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tile').forEach(tile => {
+        const show = cat === 'all' || tile.dataset.cat === cat;
+        tile.style.opacity = show ? '1' : '0.15';
+        tile.style.pointerEvents = show ? 'auto' : 'none';
+      });
+    }
+
+    /* ── Contact form ── */
+    function handleSubmit(e) {
+      e.preventDefault();
+      document.getElementById('form-success').style.display = 'block';
+      e.target.reset();
+    }
+  </script>
+</body>
+</html>
